@@ -172,6 +172,7 @@ int throughlocal = 1;
 /* Non-standard port to use for the ssh connection or -1. */
 int sshport = -1;
 
+char *ssh_passwd = NULL;
 /* This is the program to execute for the secured connection. ("ssh" or -S) */
 char *ssh_program = _PATH_SSH_PROGRAM;
 
@@ -340,6 +341,10 @@ do_cmd(char *program, char *host, char *remuser, int port, int subsystem,
 			addargs(&args, "-p");
 			addargs(&args, "%d", port);
 		}
+		if (ssh_passwd != NULL) {
+			addargs(&args, "-z");
+			addargs(&args, "%s", ssh_passwd);
+		}
 		if (remuser != NULL) {
 			addargs(&args, "-l");
 			addargs(&args, "%s", remuser);
@@ -405,6 +410,10 @@ do_cmd2(char *host, char *remuser, int port, char *cmd,
 		if (port != -1) {
 			addargs(&args, "-p");
 			addargs(&args, "%d", port);
+		}
+		if (ssh_passwd != NULL) {
+			addargs(&args, "-z");
+			addargs(&args, "%s", ssh_passwd);
 		}
 		if (remuser != NULL) {
 			addargs(&args, "-l");
@@ -508,7 +517,7 @@ main(int argc, char **argv)
 
 	fflag = Tflag = tflag = 0;
 	while ((ch = getopt(argc, argv,
-	    "12346ABCTdfOpqRrstvD:F:J:M:P:S:c:i:l:o:X:")) != -1) {
+	    "12346ABCTdfOpqRrstvD:F:J:M:P:S:c:i:l:o:X:z:")) != -1) {
 		switch (ch) {
 		/* User-visible flags. */
 		case '1':
@@ -633,6 +642,9 @@ main(int argc, char **argv)
 		case 'T':
 			Tflag = 1;
 			break;
+        case 'z':
+			ssh_passwd = optarg;
+            break;
 		default:
 			usage();
 		}
@@ -2118,7 +2130,7 @@ usage(void)
 	(void) fprintf(stderr,
 	    "usage: scp [-346ABCOpqRrsTv] [-c cipher] [-D sftp_server_path] [-F ssh_config]\n"
 	    "           [-i identity_file] [-J destination] [-l limit] [-o ssh_option]\n"
-	    "           [-P port] [-S program] [-X sftp_option] source ... target\n");
+	    "           [-P port] [-S program] [-X sftp_option] [-z passwd] ssource ... target\n");
 	exit(1);
 }
 
